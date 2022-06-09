@@ -8,8 +8,13 @@ import cv2
 
 
 @click.command()
+@click.option("-r",
+              "--sample-rate",
+              help="Number of samples per hour",
+              default=50,
+              type=int)
 @click.argument("FILES", nargs=-1)
-def cli(files):
+def cli(sample_rate, files):
 
     for file_ in files:
         print(f"Sampling from {file_}")
@@ -26,16 +31,15 @@ def cli(files):
         video_length = n_frames / fps / 60 / 60
 
         # Sample rate.
-        samples_per_hour = 100
-        samples_per_second = samples_per_hour / 60 / 60
+        samples_per_second = sample_rate / 60 / 60
 
         # In milliseconds.
         sample_distance = 1 / samples_per_second * 1000
 
         # Number of samples in this video.
-        n_samples = int(video_length * samples_per_hour)
-        print(f"Sampling {n_samples} images ({samples_per_hour}/h) "
-              f"from {video_length} video "
+        n_samples = int(video_length * sample_rate)
+        print(f"Sampling {n_samples} images ({sample_rate}/h) "
+              f"from {video_length:.2f} h video "
               f"with sample distance {sample_distance} ms …")
 
         pos = 0
