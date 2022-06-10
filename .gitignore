@@ -153,3 +153,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+/both/
+/no_falcons/
+/tina/
+/tom/
