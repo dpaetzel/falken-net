@@ -44,3 +44,5 @@ long as we can clearly make them out, we say “they're there”.
 3. Train model
    - finetune?
 4. export trained
+   - only weights?
+   - full model, somehow?
