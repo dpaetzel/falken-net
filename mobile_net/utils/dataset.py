@@ -41,7 +41,6 @@ class Dataset:
         images = np.array(images)
         labels = np.array(labels)
 
-        print("Make Dataset...")
         self.dataset = tf.data.Dataset.from_tensor_slices((images, labels))
 
     @tf.function
@@ -66,6 +65,7 @@ class Dataset:
         self.dataset = self.dataset.map(self._preprocess_imgs)
         self.dataset = self.dataset.shuffle(self.buffer_size, reshuffle_each_iteration=True)
         self.dataset = self.dataset.batch(batch_size)
+        self.dataset = self.dataset.prefetch(tf.data.AUTOTUNE)
 
         return self.dataset
 
