@@ -1,7 +1,7 @@
 # !/usr/bin/env python
 
 """
-
+Loads all images into cache and create a tf.Dataset Object
 """
 import numpy as np
 import os
@@ -16,6 +16,7 @@ class Dataset:
         self.img_folders = [r"../../both", r"../../no_falcons", r"../../tina", r"../../tom"]
 
         self.dataset = None
+        self.buffer_size = 1000
 
         self._load_files_and_make_dataset()
 
@@ -27,7 +28,7 @@ class Dataset:
         images = list()
         labels = list()
         for label, folder in enumerate(self.img_folders):
-            for file in tqdm.tqdm(os.listdir(folder), desc="Loading images..."):
+            for file in tqdm.tqdm(os.listdir(folder), desc="Loading {} images...".format(os.path.split(folder)[-1])):
                 # create path
                 img_path = os.path.join(folder, file)
                 # load image and downsize it by 4
@@ -56,19 +57,30 @@ class Dataset:
         return img, label
 
     @tf.function
-    def get_dataset(self):
+    def _get_dataset(self, batch_size):
+        """
+        Preprocess, shuffle and batch the dataset
+        :param batch_size:
+        :return:
+        """
         self.dataset = self.dataset.map(self._preprocess_imgs)
+        self.dataset = self.dataset.shuffle(self.buffer_size, reshuffle_each_iteration=True)
+        self.dataset = self.dataset.batch(batch_size)
 
         return self.dataset
 
-    def __call__(self, *args, **kwargs):
-        return self.get_dataset()
+    def __call__(self, batch_size):
+        """
+        Returns the finished dataset
+        :param batch_size:
+        :return:
+        """
+        return self._get_dataset(batch_size)
 
 
 if __name__ == '__main__':
     d = Dataset()
 
-    dataaset = d.get_dataset()
-    print()
-    for i, l in dataaset:
-        print(i, l)
+    dset = d(100)
+    for i, l in dset:
+        print(np.shape(i))
