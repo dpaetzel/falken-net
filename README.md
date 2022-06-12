@@ -30,7 +30,8 @@ long as we can clearly make them out, we say “they're there”.
 4. See how well MobileNet does.
 5. Try deploying MobileNet to David's Raspberry Pi 3.
 
-### TODO Mobilenet:
+
+### TODO Mobilenet
 1. Data Preprocessing
    - possibly need to resize the images to save computation time
    - Train-Test split
