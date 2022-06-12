@@ -84,6 +84,7 @@ def process_dataset(dataset, batch_size):
 
     return dataset
 
+
 def get_dataset(batch_size):
     """
     Returns a train and val dataset
