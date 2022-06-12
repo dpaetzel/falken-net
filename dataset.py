@@ -24,8 +24,7 @@ def load_files_and_make_dataset():
     for label, folder in enumerate(IMG_FOLDERS):
         images = list()
         labels = list()
-        if "tina" in folder:
-            continue
+        
         for file in tqdm.tqdm(os.listdir(folder), desc="Loading {} images...".format(os.path.split(folder)[-1])):
             # create path
             img_path = os.path.join(folder, file)
