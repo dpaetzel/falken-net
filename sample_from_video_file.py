@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell -i python -p "python39.withPackages(ps: with ps; [ click ipython numpy (opencv4.override({ enableFfmpeg = true; enableGtk3 = true; }))])"
+#! nix-shell -i python -p "python39.withPackages(ps: with ps; [ click ipython numpy (opencv4.override({ enableFfmpeg = true; enableGtk3 = true; })) tqdm ])"
 #
 # Original draft by CuiHen (https://github.com/CuiHen).
 
@@ -7,6 +7,7 @@ from os.path import basename
 
 import click
 import cv2
+from tqdm import trange
 
 
 @click.command()
@@ -94,7 +95,7 @@ def cli(sample_rate, n_samples, start, end, files):
               f"with sample distance {sample_distance} s …")
 
         pos = 1000 * (0 if start is None else start)
-        for i in range(n_samples):
+        for i in trange(n_samples):
             vid.set(cv2.CAP_PROP_POS_MSEC, pos)
 
             ret, frame = vid.read()
