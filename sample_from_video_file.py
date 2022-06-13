@@ -21,17 +21,16 @@ from tqdm import trange
               help="Number of samples to generate (overrides -r)",
               default=None,
               type=int)
-@click.option(
-    "-s",
-    "--start",
-    help=("Start sampling from this position (in seconds) in the video (also "
-          " requires --end)"),
-    type=int,
-    default=None)
+@click.option("-s",
+              "--start",
+              help=("Start sampling from this position (in seconds) in each "
+                    "video (also requires --end)"),
+              type=int,
+              default=None)
 @click.option("-e",
               "--end",
-              help=("Stop sampling at this position (in seconds) in the video "
-                    "(also requires --start)"),
+              help=("Stop sampling at this position (in seconds) in each "
+                    "video (also requires --start)"),
               type=int,
               default=None)
 @click.argument("FILES", nargs=-1)
