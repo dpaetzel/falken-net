@@ -29,3 +29,21 @@ long as we can clearly make them out, we say “they're there”.
 3. Train MobileNet.
 4. See how well MobileNet does.
 5. Try deploying MobileNet to David's Raspberry Pi 3.
+
+
+### TODO Mobilenet
+1. Data Preprocessing
+   - possibly need to resize the images to save computation time
+   - Train-Test split
+     - random sample form train set?
+     - create test set from another day?
+   - load images from folders and map class from folder-name
+   - standardize data
+2. Define Model:
+   - use mobilenet
+   - define head
+3. Train model
+   - finetune?
+4. export trained
+   - only weights?
+   - full model, somehow?
