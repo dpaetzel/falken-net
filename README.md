@@ -20,13 +20,6 @@ We don't distinguish between “in the nest” and “at the edge of the nest”
 long as we can clearly make them out, we say “they're there”.
 
 
-## How to load a trained model
-
-
-To restore a model, use:  
-`falcon_model = tf.keras.models.load_model('falcon_model.h5')`
-
-
 ## Roadmap
 
 
