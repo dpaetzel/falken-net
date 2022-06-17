@@ -32,6 +32,8 @@ long as we can clearly make them out, we say “they're there”.
 
 
 ### TODO Mobilenet
+
+
 1. Data Preprocessing
    - possibly need to resize the images to save computation time
    - Train-Test split

@@ -6,12 +6,13 @@ import cv2
 import tqdm
 import tensorflow as tf
 import numpy as np
+from sklearn.model_selection import train_test_split
 
-IMG_FOLDERS = [r"./both", r"./no_falcons", r"./tina", r"./tom"]
+CLASS_DIRS = [r"both", r"no_falcons", r"tina", r"tom"]
 BUFFER_SIZE = 1000
 
 
-def load_files_and_make_dataset():
+def load_files(data_dir="."):
     """
     Load the images and label into cache and create a train and val tf.Dataset object
     :return:
@@ -21,39 +22,40 @@ def load_files_and_make_dataset():
     val_images = list()
     val_labels = list()
 
-    for label, folder in enumerate(IMG_FOLDERS):
-        images = list()
-        labels = list()
-        
-        for file in tqdm.tqdm(os.listdir(folder), desc="Loading {} images...".format(os.path.split(folder)[-1])):
-            # create path
-            img_path = os.path.join(folder, file)
-            # load image and downsize it by 4
+    images = list()
+    labels = list()
+    for label, class_dir in enumerate(CLASS_DIRS):
+        dir = f"{data_dir}/{class_dir}"
+        for file in tqdm.tqdm(os.listdir(dir),
+                              desc="Loading {} images...".format(
+                                  os.path.split(dir)[-1])):
+            img_path = os.path.join(dir, file)
+
+            # Load image and downsize it by factor 4.
             img = cv2.imread(img_path)
             img = cv2.resize(img, (0, 0), fx=0.25, fy=0.25)
 
             images.append(img)
             labels.append(label)
 
-        # split them into train and val sets
-        random.shuffle(images)
-        random.shuffle(labels)
-        split_at = len(images) // 4  # 1/4th becomes test, 3/4th becomes train
-        train_images.extend(images[split_at:])
-        train_labels.extend(labels[split_at:])
-        val_images.extend(images[:split_at])
-        val_labels.extend(labels[:split_at])
+    return images, labels
 
-        # break
-    train_images = np.array(train_images)
-    train_labels = np.array(train_labels)
-    val_images = np.array(val_images)
-    val_labels = np.array(val_labels)
 
-    train_dataset = tf.data.Dataset.from_tensor_slices((train_images, train_labels))
-    val_dataset = tf.data.Dataset.from_tensor_slices((val_images, val_labels))
+def split_data(images, labels, test_size=0.25, random_state=None):
 
-    return train_dataset, val_dataset
+    def label_rel_freqs(labels):
+        return np.unique(np.array(labels), return_counts=True)[1] / len(labels)
+
+    print("Pre-split label distribution (rel freqs):", label_rel_freqs(labels))
+    X_train, X_test, y_train, y_test = train_test_split(
+        images,
+        labels,
+        test_size=test_size,
+        random_state=random_state,
+        stratify=labels)
+    print("Train label distribution (rel freqs):", label_rel_freqs(y_train))
+    print("Test label distribution (rel freqs):", label_rel_freqs(y_test))
+    return X_train, X_test, y_train, y_test
 
 
 @tf.function
@@ -66,6 +68,7 @@ def preprocess_imgs(img, label):
     """
     img = tf.cast(img, tf.float32)
     img = tf.keras.applications.mobilenet_v2.preprocess_input(img)
+
     return img, label
 
 
@@ -84,18 +87,22 @@ def process_dataset(dataset, batch_size):
     return dataset
 
 
-def get_dataset(batch_size):
+def get_dataset(batch_size, data_dir=".", random_state=None):
     """
     Returns a train and val dataset
     :param batch_size:
     :return:
     """
-    train_dataset, val_dataset = load_files_and_make_dataset()
+    X, y = load_files(data_dir)
+    X_train, X_test, y_train, y_test = split_data(X, y, random_state=random_state)
 
-    train_dataset = process_dataset(train_dataset, batch_size)
-    val_dataset = process_dataset(val_dataset, batch_size)
+    dataset_train = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+    dataset_test = tf.data.Dataset.from_tensor_slices((X_test, y_test))
 
-    return train_dataset, val_dataset
+    dataset_train = process_dataset(dataset_train, batch_size)
+    dataset_test = process_dataset(dataset_test, batch_size)
+
+    return dataset_train, dataset_test
 
 
 if __name__ == '__main__':
