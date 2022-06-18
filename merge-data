@@ -1,0 +1,25 @@
+#!/usr/bin/env fish
+
+
+if test -z "$argv[1]"
+    echo "Requires argument: data directory"
+    exit 1
+end
+
+
+pushd "$argv[1]"/additional
+
+
+# Prevent overwriting files.
+rename "." "_add." **
+
+
+for dir in *
+    mv "$dir"/* ../original/"$dir"
+end
+
+
+popd
+
+
+mv "$argv[1]"/original .
