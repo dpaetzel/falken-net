@@ -3,12 +3,27 @@
 #
 # Original draft by CuiHen (https://github.com/CuiHen).
 
+import os
+import re
+import sys
 from os.path import basename
 
 import click
 import cv2
 from tqdm import trange
 
+
+def parse_min_sec(s, argument):
+    if ":" in s:
+        match =re.match("^(\d+):(\d\d)$", s)
+        if match is None:
+            print(f"Error in {argument} argument, should be seconds or m:ss format")
+            sys.exit(1)
+        res = int(match[1]) * 60 + int(match[2])
+    else:
+        res = int(s)
+
+    return res
 
 @click.command()
 @click.option("-r",
@@ -23,15 +38,15 @@ from tqdm import trange
               type=int)
 @click.option("-s",
               "--start",
-              help=("Start sampling from this position (in seconds) in each "
-                    "video (also requires --end)"),
-              type=int,
+              help=("Start sampling from this position (in seconds or m:s) "
+                    "in each video (also requires --end)"),
+              type=str,
               default=None)
 @click.option("-e",
               "--end",
-              help=("Stop sampling at this position (in seconds) in each "
-                    "video (also requires --start)"),
-              type=int,
+              help=("Stop sampling from this position (in seconds or m:s) "
+                    "in each video (also requires --start)"),
+              type=str,
               default=None)
 @click.argument("FILES", nargs=-1)
 def cli(sample_rate, n_samples, start, end, files):
@@ -66,6 +81,9 @@ def cli(sample_rate, n_samples, start, end, files):
         # else corresponds to `start is not None and end is not None` due to
         # option validation above
         else:
+            start = parse_min_sec(start, "--start")
+            end = parse_min_sec(end, "--end")
+
             # Video length in seconds.
             video_length = end - start
             assert video_length > 0, "--start and --end must specify a positive interval"
@@ -89,7 +107,7 @@ def cli(sample_rate, n_samples, start, end, files):
             # In seconds.
             sample_distance = 1 / samples_per_second
 
-        print(f"Sampling {n_samples} images ({samples_per_second}/s) "
+        print(f"Sampling {n_samples} images (~{samples_per_second:.2f}/s) "
               f"from {video_length:.2f} s video "
               f"with sample distance {sample_distance} s …")
 
@@ -103,10 +121,12 @@ def cli(sample_rate, n_samples, start, end, files):
                 break
 
             # TODO Warn before overwriting stuff
-            fname = f"sample/{basename(file_)}-{i}.jpg"
+            sample_dir = "sample"
+            os.makedirs(sample_dir, exist_ok=True)
+            fname = f"{sample_dir}/{basename(file_)}-{i}.jpg"
             ret = cv2.imwrite(fname, frame)
             if ret == False:
-                print("Failed to write {fname}.")
+                print(f"Failed to write {fname}.")
 
             # Positions are given in milliseconds, sample_distance is in
             # seconds.
