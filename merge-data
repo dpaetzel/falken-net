@@ -1,25 +1,30 @@
-#!/usr/bin/env fish
+#!/usr/bin/env bash
 
 
-if test -z "$argv[1]"
+if test -z "$1"; then
     echo "Requires argument: data directory"
     exit 1
-end
+fi
 
 
-pushd "$argv[1]"/additional
+data_dir="$1"
+
+
+pushd "$data_dir"/additional
 
 
 # Prevent overwriting files.
 rename "." "_add." **
 
 
-for dir in *
+for dir in *; do
     mv "$dir"/* ../original/"$dir"
-end
+done
 
 
 popd
 
 
-mv "$argv[1]"/original .
+dir=$(mktemp --dry-run --directory)
+mv "$data_dir" "$dir"
+mv "$dir"/original "$data_dir"
