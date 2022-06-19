@@ -28,9 +28,12 @@ import click
 @click.option("--softmax",
               help="Whether to use the softmax layer",
               default=True)
+@click.option("--batch-size",
+              # Set high due to class imbalance.
+              default=2048)
 @click.argument("DATA_DIR")
 def cli(data_dir, seed, learning_rate, n_epochs, n_epochs_fine_tune, fine_tune,
-        softmax):
+        softmax, batch_size):
     """
     Train the model using the data from DATA DIR and save it to disk in the
     current folder.
@@ -62,7 +65,7 @@ def cli(data_dir, seed, learning_rate, n_epochs, n_epochs_fine_tune, fine_tune,
     model.summary()
 
     # Get preprocessed data.
-    dataset_train, dataset_test = get_dataset(batch_size=32,
+    dataset_train, dataset_test = get_dataset(batch_size=batch_size,
                                               data_dir=data_dir,
                                               random_state=seed)
 
