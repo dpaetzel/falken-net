@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+
+set -e
+
+
+wget -O data.zip "https://megastore.rz.uni-augsburg.de/get/DZwvpWPBaw/"
+
+
+unzip -q data.zip
+
+
+# The archive contains a directory `data` with subdirectories.
+data_dir=data
+
+
+pushd "$data_dir"/additional
+
+
+# Prevent overwriting files.
+rename "." "_add." **
+
+
+for dir in *; do
+    mv "$dir"/* ../original/"$dir"
+done
+
+
+popd
