@@ -14,11 +14,11 @@ unzip -q data.zip
 data_dir=data
 
 
+# Prevent overwriting files. On the server, only the weird Perl rename exists.
+find "$data_dir/additional" -type f -exec rename 's/\./_add./' '{}' ';'
+
+
 pushd "$data_dir"/additional
-
-
-# Prevent overwriting files.
-rename "." "_add." **
 
 
 for dir in *; do
