@@ -68,6 +68,7 @@ def cli(sample_rate, n_samples, start, end, files):
 
         if not vid.isOpened():
             print(f"Video file '{file_}' could not be opened.")
+            continue
 
         if start is None:
             # Note that `end is None` in this case due to option validation
