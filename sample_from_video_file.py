@@ -1,12 +1,12 @@
 #!/usr/bin/env nix-shell
 #! nix-shell -i python -p "python39.withPackages(ps: with ps; [ click ipython numpy (opencv4.override({ enableFfmpeg = true; enableGtk3 = true; })) tqdm ])"
 #
-# Original draft by CuiHen (https://github.com/CuiHen).
+# Authors: dpaetzel, CuiHen.
 
 import os
 import re
 import sys
-from os.path import basename
+from os.path import basename, exists
 
 import click
 import cv2
@@ -48,8 +48,13 @@ def parse_min_sec(s, argument):
                     "in each video (also requires --start)"),
               type=str,
               default=None)
+@click.option("--sample-dir",
+              help=("Directory to store the samples in "
+                    "(will be created if it does not exist)"),
+              type=str,
+              default="samples")
 @click.argument("FILES", nargs=-1)
-def cli(sample_rate, n_samples, start, end, files):
+def cli(sample_rate, n_samples, start, end, files, sample_dir):
     """
     Equidistantly sample images from the given video FILES.
     """
@@ -61,7 +66,16 @@ def cli(sample_rate, n_samples, start, end, files):
             or (end is None and start is not None)):
         print("If --start is given, --end needs to be given and vice versa.")
 
+    # TODO Make this nicer: If we have many files, we recompute stuff wrongly
+    # because n_samples is not None any more. We fix this by remembering whether
+    # n_samples was None initially.
+    if n_samples is None:
+        n_samples_was_none = True
+
     for file_ in files:
+        if n_samples_was_none:
+            n_samples = None
+
         print(f"Sampling from {file_}")
 
         vid = cv2.VideoCapture(file_)
@@ -94,11 +108,11 @@ def cli(sample_rate, n_samples, start, end, files):
             # Sample rate.
             samples_per_second = sample_rate / 60.0 / 60
 
-            # In milliseconds.
-            sample_distance = 1 / samples_per_second
-
             # Number of samples in this video.
             n_samples = int(video_length * samples_per_second)
+
+            # In seconds.
+            sample_distance = 1 / samples_per_second
 
         # If number of samples was given, compute sample rate.
         else:
@@ -113,21 +127,24 @@ def cli(sample_rate, n_samples, start, end, files):
               f"with sample distance {sample_distance} s …")
 
         pos = 1000 * (0 if start is None else start)
+
+        os.makedirs(sample_dir, exist_ok=True)
+
         for i in trange(n_samples):
-            vid.set(cv2.CAP_PROP_POS_MSEC, pos)
+            fname = f"{sample_dir}/{basename(file_)}-{pos}.jpg"
 
-            ret, frame = vid.read()
-            if ret == False:
-                print("Aborting due to VideoCapture.read() returning False")
-                break
+            if not exists(fname):
+                vid.set(cv2.CAP_PROP_POS_MSEC, pos)
 
-            # TODO Warn before overwriting stuff
-            sample_dir = "sample"
-            os.makedirs(sample_dir, exist_ok=True)
-            fname = f"{sample_dir}/{basename(file_)}-{i}.jpg"
-            ret = cv2.imwrite(fname, frame)
-            if ret == False:
-                print(f"Failed to write {fname}.")
+                ret, frame = vid.read()
+                if ret == False:
+                    print("Aborting due to VideoCapture.read() returning False")
+                    break
+
+                # TODO Warn before overwriting stuff
+                ret = cv2.imwrite(fname, frame)
+                if ret == False:
+                    print(f"Failed to write {fname}.")
 
             # Positions are given in milliseconds, sample_distance is in
             # seconds.
