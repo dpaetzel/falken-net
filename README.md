@@ -31,7 +31,7 @@ long as we can clearly make them out, we say “they're there”.
 5. Try deploying MobileNet to David's Raspberry Pi 3.
 
 
-### TODO Mobilenet
+## TODO Mobilenet
 
 
 1. Data Preprocessing
@@ -49,3 +49,30 @@ long as we can clearly make them out, we say “they're there”.
 4. export trained
    - only weights?
    - full model, somehow?
+
+
+## Annotating samples
+
+
+Run
+
+```
+nix develop
+```
+
+and then
+
+```
+python sample_from_video_file.py -r 360 --sample-dir=sampledir video.ts
+```
+
+Afterwards, you may divide the sample into two classes by running
+
+```
+run-image-labelling.py --sample-dir=sampledir --selection-dir=selectiondir --unselection-dir=unselectiondir
+```
+
+To divide into more than two classes, just divide into majority class/all other
+classes first (i.e. use `run-image-labelling.py` to select samples *not* in the
+majority class) then recursively run `run-image-labelling.py` on the set of
+samples belonging to “all other classes”.
